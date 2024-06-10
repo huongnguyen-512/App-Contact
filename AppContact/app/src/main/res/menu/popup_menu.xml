@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/ic_chon1"
+        android:title="Chọn một" />
+
+    <item
+        android:id="@+id/chontat"
+        android:title="Chọn tất cả"
+        />
+
+</menu>

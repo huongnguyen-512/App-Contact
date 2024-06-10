@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <item
+        android:id="@+id/bottom_menu_directory"
+        android:icon="@drawable/ic_directory"
+        android:title="Đơn vị" />
+
+    <item
+        android:id="@+id/bottom_menu_employee"
+        android:title="Nhân viên"
+        android:icon="@drawable/ic_person"
+        />
+
+
+
+</menu>
