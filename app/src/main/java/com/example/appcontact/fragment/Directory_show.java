@@ -102,13 +102,6 @@ public class Directory_show extends Fragment {
                 transaction.commit();
             }
         });
-        ImageButton ic_menu  = view.findViewById(R.id.ic_menu);
-        ic_menu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupMenu(v);
-            }
-        });
         listViewDirectories = view.findViewById(R.id.lsvDirectory);
         Context context = getActivity();
         dbhelper = new DatabaseHelper(context);

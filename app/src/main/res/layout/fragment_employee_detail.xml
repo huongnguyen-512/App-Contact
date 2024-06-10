@@ -121,6 +121,26 @@
                     android:text="Email"
                     android:textSize="16sp" />
             </LinearLayout>
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Tên đơn vị: "
+                    android:textStyle="bold"
+                    android:textSize="16sp" />
+                <TextView
+                    android:id="@+id/txtTendv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Email"
+                    android:textSize="16sp" />
+            </LinearLayout>
         </LinearLayout>
     <LinearLayout
         android:layout_gravity="center"
@@ -128,11 +148,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         <Button
+            android:id="@+id/btnsuanv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sửa"
             />
         <Button
+            android:id="@+id/btnxoanv"
             android:layout_marginLeft="50dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

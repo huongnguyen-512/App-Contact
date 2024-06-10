@@ -10,6 +10,8 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -17,9 +19,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.appcontact.R;
@@ -32,15 +37,18 @@ import com.example.appcontact.models.EmployeeAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class Employee_show extends Fragment {
+
     private ImageButton btnAdd;
     private DatabaseHelper dbhelper;
     private ListView listViewEmployees;
     private ArrayList<Employee> employlist;
     private EmployeeAdapter adapter;
-
-
+    private Button btnxoa, btnsua;
+    private EditText edtTk;
 
     public static Employee_show newInstance(String param1, String param2) {
         Employee_show fragment = new Employee_show();
@@ -54,10 +62,12 @@ public class Employee_show extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_employee_show2, container, false);
+        edtTk = view.findViewById(R.id.edtTKNV);
 
         btnAdd = view.findViewById(R.id.btnadd);
         btnAdd.setOnClickListener(new View.OnClickListener() {
@@ -71,68 +81,85 @@ public class Employee_show extends Fragment {
             }
         });
 
-        ImageButton ic_menu = view.findViewById(R.id.ic_menu);
-        ic_menu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupMenu(v);
-            }
-        });
+
 
         listViewEmployees = view.findViewById(R.id.list_view_employee);
+
         Context context = getActivity();
         dbhelper = new DatabaseHelper(context);
 
         employlist = new ArrayList<>();
-        loadEmployees();
 
-        adapter = new EmployeeAdapter(getActivity(), employlist);
-        listViewEmployees.setAdapter(adapter);
+        // Load employees only if there are some
+        if (!loadEmployees()) {
+            Toast.makeText(requireContext(), "No employees found", Toast.LENGTH_SHORT).show();
+        } else {
+            adapter = new EmployeeAdapter(getActivity(), employlist);
+            listViewEmployees.setAdapter(adapter);
+        }
+
         listViewEmployees.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            // Inside onItemClick method
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Retrieve the selected employee from the list
                 Employee selectedEmployee = employlist.get(position);
 
-                // Pass the selected employee data to the detail fragment
-                Bundle bundle = new Bundle();
-                bundle.putString("hoTen", selectedEmployee.getHoTen());
-                bundle.putString("chucvu", selectedEmployee.getChucVu());
-                bundle.putString("email", selectedEmployee.getEmail());
-                bundle.putString("sdt", selectedEmployee.getSdt());
+                if (!selectedEmployee.isHeader()) {
+                    Bundle bundle = new Bundle();
+                    bundle.putString("hoTen", selectedEmployee.getHoTen());
+                    bundle.putString("chucvu", selectedEmployee.getChucVu());
+                    bundle.putString("email", selectedEmployee.getEmail());
+                    bundle.putString("sdt", selectedEmployee.getSdt());
+                    bundle.putString("tenDonVi", selectedEmployee.getTenDonVi());
 
-                // Convert the avatar Bitmap to a byte array
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                selectedEmployee.getAvatar().compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] byteArray = stream.toByteArray();
-                bundle.putByteArray("avatar", byteArray);
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    selectedEmployee.getAvatar().compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    bundle.putByteArray("avatar", byteArray);
 
-                // Navigate to the detail fragment
-                EmployeeDetail detailFragment = new EmployeeDetail();
-                detailFragment.setArguments(bundle);
+                    EmployeeDetail detailFragment = new EmployeeDetail();
+                    detailFragment.setArguments(bundle);
 
-                // Check if the container view exists in the activity layout
-                View container = requireActivity().findViewById(R.id.frame_layout);
-                if(container != null) {
-                    FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame_layout, detailFragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                } else {
-                    Toast.makeText(requireContext(), "Container view not found", Toast.LENGTH_SHORT).show();
+                    View container = requireActivity().findViewById(R.id.frame_layout);
+                    if (container != null) {
+                        FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame_layout, detailFragment);
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                    } else {
+                        Toast.makeText(requireContext(), "Container view not found", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
+        });
+        edtTk.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterEmployees(s.toString());
+            }
         });
         return view;
     }
 
-
-    private void loadEmployees() {
+    private boolean loadEmployees() {
         SQLiteDatabase db = dbhelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_NHANVIEN, null, null, null, null, null, null);
+
+        if (cursor.getCount() == 0) {
+            cursor.close();
+            db.close();
+            return false; // No employees found
+        }
+
+        employlist.clear();
+        String currentHeader = null;
 
         if (cursor.moveToFirst()) {
             do {
@@ -142,41 +169,57 @@ public class Employee_show extends Fragment {
                 String chucvu = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CHUCVU_NV));
                 String sdt = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_SDT_NV));
                 int employeeId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MA_NV));
-
+                String tenDvi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TEN_DONVI_NV));
                 Bitmap bitmap = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.length);
-                // Giảm kích thước của bitmap
                 bitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
-                Employee employee = new Employee(employeeId, hoTen, chucvu, email, sdt, bitmap); // Pass employeeId to constructor
-                employlist.add(employee);
 
+                // Get the first letter of the employee's name
+                String firstLetter = hoTen.substring(0, 1).toUpperCase();
+//                String selectedDonVi = spTendvi.getSelectedItem().toString();
+
+                // If the header doesn't exist or is different, create a new header
+                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                    currentHeader = firstLetter;
+                    employlist.add(new Employee(currentHeader));
+                }
+
+                Employee employee = new Employee(employeeId, hoTen, chucvu, email, sdt, bitmap, false,  tenDvi);
+                employlist.add(employee);
             } while (cursor.moveToNext());
         }
 
         cursor.close();
         db.close();
-    }
 
-
-    private void showPopupMenu(View view) {
-        PopupMenu popup = new PopupMenu(requireContext(), view);
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.popup_menu, popup.getMenu());
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+        // Sort the list alphabetically by employee names (excluding headers)
+        Collections.sort(employlist.subList(1, employlist.size()), new Comparator<Employee>() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.ic_chon1) {
-                    Toast.makeText(requireContext(), "Chọn", Toast.LENGTH_SHORT).show();
-                    return true;
-                } else if (id == R.id.chontat) {
-                    Toast.makeText(requireContext(), "Chọn tất cả", Toast.LENGTH_SHORT).show();
-                    return true;
+            public int compare(Employee e1, Employee e2) {
+                // If both have the same first letter, sort by their names
+                if (e1.getHoTen().substring(0, 1).equalsIgnoreCase(e2.getHoTen().substring(0, 1))) {
+                    return e1.getHoTen().compareToIgnoreCase(e2.getHoTen());
                 } else {
-                    return false;
+                    // Otherwise, sort by the first letter
+                    return e1.getHoTen().substring(0, 1).compareToIgnoreCase(e2.getHoTen().substring(0, 1));
                 }
             }
         });
-        popup.show();
+
+        return true; // Employees loaded successfully
+    }
+    private void filterEmployees(String searchText) {
+        ArrayList<Employee> filteredList = new ArrayList<>();
+
+        for (Employee employee : employlist) {
+            // Check if the employee name contains the search text
+            if (employee.getHoTen().toLowerCase().contains(searchText.toLowerCase())) {
+                filteredList.add(employee);
+            }
+        }
+
+        // Update the adapter with the filtered list
+        adapter = new EmployeeAdapter(getActivity(), filteredList);
+        listViewEmployees.setAdapter(adapter);
     }
 
 }

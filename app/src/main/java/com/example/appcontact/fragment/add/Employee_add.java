@@ -26,9 +26,11 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.appcontact.R;
@@ -37,6 +39,7 @@ import com.example.appcontact.models.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class Employee_add extends Fragment {
     private EditText editTextHoTenNV, editTextChucVuNV, editTextEmailNV, editTextSdtNV;
@@ -44,6 +47,7 @@ public class Employee_add extends Fragment {
     private Button buttonSaveNhanVien, btnout;
     private DatabaseHelper databaseHelper;
     private Bitmap anhDaiDienBitmap;
+    private Spinner spinTendv;
 
     // Required empty public constructor
 
@@ -64,6 +68,7 @@ public class Employee_add extends Fragment {
         imageViewAnhDaiDienNV = view.findViewById(R.id.imageViewAnhDaiDienNV);
         buttonSaveNhanVien = view.findViewById(R.id.buttonSaveNhanVien);
         btnout = view.findViewById(R.id.btnbackNV);
+        spinTendv = view.findViewById(R.id.spinTendvi);
         btnout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,7 +81,7 @@ public class Employee_add extends Fragment {
             }
         });
         databaseHelper = new DatabaseHelper(getContext());
-
+        loadUnitNamesIntoSpinner();
         imageViewAnhDaiDienNV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,25 +134,23 @@ public class Employee_add extends Fragment {
     }
 
 
+
     private void saveNhanVien() {
         String hoTenNV = editTextHoTenNV.getText().toString();
         String chucVuNV = editTextChucVuNV.getText().toString();
         String emailNV = editTextEmailNV.getText().toString();
         String sdtNV = editTextSdtNV.getText().toString();
+        String tenDv = spinTendv.getSelectedItem().toString(); // Retrieve selected unit name
 
-        // Ensure all fields are filled and image is selected
         if (hoTenNV.isEmpty() || chucVuNV.isEmpty() || emailNV.isEmpty() || sdtNV.isEmpty() || anhDaiDienBitmap == null) {
             Toast.makeText(getContext(), "Please fill all fields and select an image.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Convert Bitmap to byte array
-//        String stringfilePath = Environment.getExternalStorageDirectory().getPath();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         anhDaiDienBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
         byte[] byteArray = stream.toByteArray();
 
-        // Save employee to database
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_HOTEN_NV, hoTenNV);
@@ -155,11 +158,10 @@ public class Employee_add extends Fragment {
         values.put(DatabaseHelper.COLUMN_EMAIL_NV, emailNV);
         values.put(DatabaseHelper.COLUMN_SDT_NV, sdtNV);
         values.put(DatabaseHelper.COLUMN_ANHDAIDIEN_NV, byteArray);
-
+        values.put(DatabaseHelper.COLUMN_TEN_DONVI_NV, tenDv); // Save unit name
         long newRowId = db.insert(DatabaseHelper.TABLE_NHANVIEN, null, values);
         db.close();
 
-        // Show toast message based on insertion result
         if (newRowId != -1) {
             Toast.makeText(getContext(), "Employee saved successfully.", Toast.LENGTH_SHORT).show();
             clearFields();
@@ -168,6 +170,13 @@ public class Employee_add extends Fragment {
         }
     }
 
+
+    private void loadUnitNamesIntoSpinner() {
+        List<String> unitNames = databaseHelper.getAllUnitNames();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, unitNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinTendv.setAdapter(adapter);
+    }
     private void clearFields() {
         // Clear all input fields and image view
         editTextHoTenNV.setText("");

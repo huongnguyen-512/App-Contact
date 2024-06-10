@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.add.Employee_add">
+    tools:context=".fragment.EmployeeEdit">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -19,13 +19,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/ttinnv"
-                android:text="Thêm thông tin nhân viên"
+                android:text="Sửa thông tin nhân viên"
                 android:textSize="30sp"
                 android:gravity="center"
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/imageViewAnhDaiDienNV"
+                android:id="@+id/imageViewAnhDaiDienNVup"
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:layout_gravity="center"
@@ -45,7 +45,7 @@
 
             <LinearLayout
                 android:layout_marginTop="10dp"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <TextView
@@ -54,30 +54,30 @@
                     android:text="Tên đơn vị: "
                     android:textSize="20sp"
                     android:textStyle="bold" />
-                <Spinner
-                    android:id="@+id/spinTendvi"
-                    android:layout_width="0dp"
+                <EditText
+                    android:id="@+id/spinTendviup"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
             </LinearLayout>
 
-<!--            <LinearLayout-->
-<!--                android:layout_marginTop="10dp"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:orientation="vertical">-->
-<!--                <TextView-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:text="Mã nhân viên: "-->
-<!--                    android:textSize="20sp"-->
-<!--                    android:textStyle="bold" />-->
-<!--                <EditText-->
-<!--                    android:id="@+id/editTextMaNV"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:hint="Mã nhân viên" />-->
-<!--            </LinearLayout>-->
+            <!--            <LinearLayout-->
+            <!--                android:layout_marginTop="10dp"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:orientation="vertical">-->
+            <!--                <TextView-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Mã nhân viên: "-->
+            <!--                    android:textSize="20sp"-->
+            <!--                    android:textStyle="bold" />-->
+            <!--                <EditText-->
+            <!--                    android:id="@+id/editTextMaNV"-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:hint="Mã nhân viên" />-->
+            <!--            </LinearLayout>-->
 
             <LinearLayout
                 android:layout_marginTop="10dp"
@@ -91,7 +91,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
                 <EditText
-                    android:id="@+id/editTextHoTenNV"
+                    android:id="@+id/editTextHoTenNVup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Họ tên" />
@@ -109,7 +109,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
                 <EditText
-                    android:id="@+id/editTextChucVuNV"
+                    android:id="@+id/editTextChucVuNVup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Chức vụ" />
@@ -127,7 +127,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
                 <EditText
-                    android:id="@+id/editTextEmailNV"
+                    android:id="@+id/editTextEmailNVup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Email" />
@@ -145,7 +145,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold" />
                 <EditText
-                    android:id="@+id/editTextSdtNV"
+                    android:id="@+id/editTextSdtNVup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Số điện thoại" />
@@ -158,13 +158,13 @@
                 android:orientation="horizontal"
                 android:layout_gravity="center">
                 <Button
-                    android:id="@+id/buttonSaveNhanVien"
+                    android:id="@+id/buttonSaveNhanVienup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thêm" />
+                    android:text="Cap nhat" />
                 <Button
                     android:layout_marginLeft="20dp"
-                    android:id="@+id/btnbackNV"
+                    android:id="@+id/btnbackNVup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Thoát" />

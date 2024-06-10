@@ -34,12 +34,6 @@
                 android:hint="Tìm kiếm tên đơn vị"
                 android:textSize="15sp"
                 android:drawableStart="@drawable/ic_search"/>
-    <ImageButton
-        android:id="@+id/ic_menu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ic_menu"
-        android:layout_gravity="center"/>
 
 
         </LinearLayout>

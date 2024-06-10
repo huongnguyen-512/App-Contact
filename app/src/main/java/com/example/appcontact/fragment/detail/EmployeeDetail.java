@@ -7,17 +7,23 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.appcontact.R;
+import com.example.appcontact.fragment.EmployeeEdit;
+import com.example.appcontact.fragment.Employee_show;
 import com.example.appcontact.models.DatabaseHelper;
 import com.example.appcontact.models.Employee;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,22 +72,59 @@ public class EmployeeDetail extends Fragment {
         }
     }
 
-    private TextView textViewHoTenNV, textViewChucVuNV, textViewEmailNV, textViewSdtNV;
+    private TextView textViewHoTenNV, textViewChucVuNV, textViewEmailNV, textViewSdtNV, txtTendv;
     private ImageView imageViewAnhDaiDienNV;
     private DatabaseHelper databaseHelper;
+    private Button btnxoa, btnsua;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_employee_detail, container, false);
+        btnsua=view.findViewById(R.id.btnsuanv);
+        btnsua.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Retrieve data from arguments
+                Bundle bundle = getArguments();
+                if (bundle != null) {
+                    String hoTen = bundle.getString("hoTen", "");
+                    String chucVu = bundle.getString("chucvu", "");
+                    String email = bundle.getString("email", "");
+                    String sdt = bundle.getString("sdt", "");
+                    String tendvi = bundle.getString("tenDonvi","");
+                    byte[] avatarByteArray = bundle.getByteArray("avatar");
 
+                    // Convert byte array to Bitmap
+                    Bitmap avatarBitmap = BitmapFactory.decodeByteArray(avatarByteArray, 0, avatarByteArray.length);
+
+                    // Create a new instance of EmployeeEdit fragment
+                    EmployeeEdit fragment = EmployeeEdit.newInstance(hoTen, chucVu, email, sdt, avatarBitmap, tendvi);
+
+                    // Start fragment transaction
+                    FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame_layout, fragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+            }
+        });
+
+        btnxoa=view.findViewById(R.id.btnxoanv);
+        btnxoa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Call a method to delete the employee
+                deleteEmployee();
+            }
+        });
         textViewHoTenNV = view.findViewById(R.id.textViewHoTenNV);
         textViewChucVuNV = view.findViewById(R.id.textViewChucVuNV);
         textViewEmailNV = view.findViewById(R.id.textViewEmailNV);
         textViewSdtNV = view.findViewById(R.id.textViewSdtNV);
         imageViewAnhDaiDienNV = view.findViewById(R.id.imgAnhDaiDienNV);
+        txtTendv = view.findViewById(R.id.txtTendv);
 
-        // Load employee data passed from previous fragment
         Bundle bundle = getArguments();
         if (bundle != null) {
             String hoTen = bundle.getString("hoTen", "");
@@ -89,22 +132,62 @@ public class EmployeeDetail extends Fragment {
             String email = bundle.getString("email", "");
             String sdt = bundle.getString("sdt", "");
             byte[] avatarByteArray = bundle.getByteArray("avatar");
+            String tenDv = bundle.getString("tenDonVi", ""); // Retrieve unit name
 
-            // Set employee details to views
             textViewHoTenNV.setText(hoTen);
             textViewSdtNV.setText(sdt);
             textViewChucVuNV.setText(chucVu);
             textViewEmailNV.setText(email);
-            // Set other details similarly
+            txtTendv.setText(tenDv); // Set unit name
 
-            // Set avatar image if available
             if (avatarByteArray != null) {
                 Bitmap bitmap = BitmapFactory.decodeByteArray(avatarByteArray, 0, avatarByteArray.length);
-                ImageView imageViewAvatar = view.findViewById(R.id.imgAnhDaiDienNV);
-                imageViewAvatar.setImageBitmap(bitmap);
+                imageViewAnhDaiDienNV.setImageBitmap(bitmap);
             }
         }
-        return view;}
 
+        return view;
+    }
+    public static EmployeeEdit newInstance(String hoTen, String chucVu, String email, String sdt, Bitmap avatar, String tendvi) {
+        EmployeeEdit fragment = new EmployeeEdit();
+        Bundle args = new Bundle();
+        args.putString("hoTen", hoTen);
+        args.putString("chucvu", chucVu);
+        args.putString("email", email);
+        args.putString("sdt", sdt);
+        args.putByteArray("avatar", convertBitmapToByteArray(avatar));
+        args.putString("tenDonvi", tendvi);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+
+    private static byte[] convertBitmapToByteArray(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        return stream.toByteArray();
+    }
+
+
+    private void deleteEmployee() {
+        // Get employee information from arguments
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            String hoTen = bundle.getString("hoTen", "");
+
+            // Delete the employee from the database
+            databaseHelper = new DatabaseHelper(getActivity());
+            SQLiteDatabase db = databaseHelper.getWritableDatabase();
+            int deletedRows = db.delete(DatabaseHelper.TABLE_NHANVIEN, DatabaseHelper.COLUMN_HOTEN_NV + "=?", new String[]{hoTen});
+            db.close();
+
+            if (deletedRows > 0) {
+                Toast.makeText(getActivity(), "Employee deleted successfully", Toast.LENGTH_SHORT).show();
+                // Optionally, you can navigate back to the previous screen or perform any other action here
+            } else {
+                Toast.makeText(getActivity(), "Failed to delete employee", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
 }

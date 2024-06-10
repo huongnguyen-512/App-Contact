@@ -22,40 +22,58 @@ import com.example.appcontact.R;
 
 import java.util.ArrayList;
 
-public class EmployeeAdapter extends ArrayAdapter<Employee> {
+public class EmployeeAdapter extends ArrayAdapter<Employee>  {
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_ITEM = 1;
 
     public EmployeeAdapter(@NonNull Context context, ArrayList<Employee> employeeArrayList) {
-        super(context, R.layout.custom_listview, employeeArrayList);
+        super(context, 0, employeeArrayList);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Employee employee = getItem(position);
+        return employee.isHeader() ? TYPE_HEADER : TYPE_ITEM;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 2; // header and item
     }
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Employee employee = getItem(position);
+        int viewType = getItemViewType(position);
         ViewHolder viewHolder;
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.custom_listview, parent, false);
             viewHolder = new ViewHolder();
-            viewHolder.listimg = convertView.findViewById(R.id.logo);
-            viewHolder.txtname = convertView.findViewById(R.id.txtName);
-            viewHolder.txtsdt = convertView.findViewById(R.id.txtSDT);
+            if (viewType == TYPE_HEADER) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.header_lsv, parent, false);
+                viewHolder.headerText = convertView.findViewById(R.id.txt_group_title);
+            } else {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.custom_listview, parent, false);
+                viewHolder.listimg = convertView.findViewById(R.id.logo);
+                viewHolder.txtname = convertView.findViewById(R.id.txtName);
+                viewHolder.txtsdt = convertView.findViewById(R.id.txtSDT);
+            }
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        // Displaying employee details
-        if (employee != null) {
-            // Get the Bitmap directly from the Employee object
-            Bitmap img = employee.anhDaiDien;
-
-            // Create a circular bitmap with a desired size (e.g., 200x200 pixels)
-            Bitmap circularBitmap = getRoundedBitmap(img, 200);
-
-            viewHolder.listimg.setImageBitmap(circularBitmap);
-            viewHolder.txtname.setText(employee.hoTen);
-            viewHolder.txtsdt.setText(employee.sdt);
+        Employee employee = getItem(position);
+        if (viewType == TYPE_HEADER) {
+            viewHolder.headerText.setText(employee.getHoTen());
+        } else {
+            if (employee != null) {
+                Bitmap img = employee.getAvatar();
+                Bitmap circularBitmap = getRoundedBitmap(img, 200);
+                viewHolder.listimg.setImageBitmap(circularBitmap);
+                viewHolder.txtname.setText(employee.getHoTen());
+                viewHolder.txtsdt.setText(employee.getSdt());
+            }
         }
 
         return convertView;
@@ -64,9 +82,9 @@ public class EmployeeAdapter extends ArrayAdapter<Employee> {
     static class ViewHolder {
         ImageView listimg;
         TextView txtname, txtsdt;
+        TextView headerText;
     }
 
-    // Utility method to create a rounded bitmap with the desired size
     private Bitmap getRoundedBitmap(Bitmap bitmap, int targetSize) {
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, targetSize, targetSize, true);
         Bitmap output = Bitmap.createBitmap(targetSize, targetSize, Bitmap.Config.ARGB_8888);

@@ -37,7 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EMAIL_NV = "email";
     public static final String COLUMN_SDT_NV = "sdt";
     public static final String COLUMN_ANHDAIDIEN_NV = "anhDaiDien";
-    public static final String COLUMN_MA_DONVI_NV = "maDonVi";
+    public static final String COLUMN_TEN_DONVI_NV = "tenDonVi";
 
 
     public DatabaseHelper(Context context) {
@@ -65,13 +65,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_CHUCVU_NV + " TEXT, " +
                 COLUMN_EMAIL_NV + " TEXT, " +
                 COLUMN_SDT_NV + " TEXT, " +
-                COLUMN_ANHDAIDIEN_NV + " BLOB) " ;
-//                +
-//                COLUMN_MA_DONVI_NV + " INTEGER)";
-//                +
-//                "FOREIGN KEY(" + COLUMN_MA_DONVI_NV + ") REFERENCES " + TABLE_DONVI + "(" + COLUMN_MA_DONVI + "))";
+                COLUMN_ANHDAIDIEN_NV + " BLOB, " +
+                COLUMN_TEN_DONVI_NV + " TEXT, " +
+                "FOREIGN KEY(" + COLUMN_TEN_DONVI_NV + ") REFERENCES " + TABLE_DONVI + "(" + COLUMN_TEN_DONVI + "))";
         db.execSQL(createTableNhanVien);
     }
+
 
 
     @Override
@@ -81,5 +80,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    // DatabaseHelper.java
+    public List<String> getAllUnitNames() {
+        List<String> unitNames = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_DONVI, new String[]{COLUMN_TEN_DONVI}, null, null, null, null, null);
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    unitNames.add(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TEN_DONVI)));
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        db.close();
+        return unitNames;
+    }
+    public boolean updateEmployee(String id, String hoTen, String chucVu, String email, String sdt, String tenDonVi) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_HOTEN_NV, hoTen);
+        values.put(COLUMN_CHUCVU_NV, chucVu);
+        values.put(COLUMN_EMAIL_NV, email);
+        values.put(COLUMN_SDT_NV, sdt);
+        values.put(COLUMN_TEN_DONVI_NV, tenDonVi);
+
+        int rowsAffected = db.update(TABLE_NHANVIEN, values, COLUMN_MA_NV + "=?", new String[]{id});
+        db.close();
+
+        return rowsAffected > 0;
+    }
 }
 
