@@ -1,21 +1,33 @@
 package com.example.appcontact.fragment;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -24,6 +36,8 @@ import com.example.appcontact.fragment.detail.EmployeeDetail;
 import com.example.appcontact.models.DatabaseHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
 
 public class EmployeeEdit extends Fragment {
 
@@ -32,6 +46,13 @@ public class EmployeeEdit extends Fragment {
 
     private String mParam1;
     private String mParam2;
+
+    private ImageView imageViewAnhDaiDienNV;
+    private EditText edtTen, edtChucVu, edtEmail, edtSdt;
+    private Spinner spinTenDv;
+    private Button btnUpdate;
+    private DatabaseHelper databaseHelper;
+
 
     public EmployeeEdit() {
         // Required empty public constructor
@@ -46,7 +67,7 @@ public class EmployeeEdit extends Fragment {
         return fragment;
     }
 
-    public static EmployeeEdit newInstance(String hoTen, String chucVu, String email, String sdt, Bitmap avatarBitmap, String tendvi) {
+    public static EmployeeEdit newInstance(String hoTen, String chucVu, String email, String sdt, Bitmap avatarBitmap, String tenDv) {
         EmployeeEdit fragment = new EmployeeEdit();
         Bundle args = new Bundle();
         args.putString("hoTen", hoTen);
@@ -54,7 +75,7 @@ public class EmployeeEdit extends Fragment {
         args.putString("email", email);
         args.putString("sdt", sdt);
         args.putByteArray("avatar", bitmapToByteArray(avatarBitmap));
-        args.putString("tenDonVi", tendvi);
+        args.putString("tenDonVi", tenDv);
         fragment.setArguments(args);
         return fragment;
     }
@@ -66,6 +87,7 @@ public class EmployeeEdit extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        databaseHelper = new DatabaseHelper(getActivity());
     }
 
     private static byte[] bitmapToByteArray(Bitmap bitmap) {
@@ -74,28 +96,28 @@ public class EmployeeEdit extends Fragment {
         return stream.toByteArray();
     }
 
-    private ImageView imageViewAnhDaiDienNV;
-    private EditText edtten, edtcv, spintendv, edtmail, edtsdt;
-
-    private Button btnup, btnout;
-
-
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_employee_edit, container, false);
 
-        // Initialize databaseHelper
-        databaseHelper = new DatabaseHelper(getActivity());
-
         // Find and assign controls
-        edtten = view.findViewById(R.id.editTextHoTenNVup);
-        edtcv = view.findViewById(R.id.editTextChucVuNVup);
-        edtmail = view.findViewById(R.id.editTextEmailNVup);
+        edtTen = view.findViewById(R.id.editTextHoTenNVup);
+        edtChucVu = view.findViewById(R.id.editTextChucVuNVup);
+        edtEmail = view.findViewById(R.id.editTextEmailNVup);
         imageViewAnhDaiDienNV = view.findViewById(R.id.imageViewAnhDaiDienNVup);
-        edtsdt = view.findViewById(R.id.editTextSdtNVup);
-        spintendv = view.findViewById(R.id.spinTendviup);
-        btnup = view.findViewById(R.id.buttonSaveNhanVienup);
+        edtSdt = view.findViewById(R.id.editTextSdtNVup);
+        spinTenDv = view.findViewById(R.id.spinTendviup);
+        btnUpdate = view.findViewById(R.id.buttonSaveNhanVienup);
+        imageViewAnhDaiDienNV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Open image picker
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, 1);
+            }
+        });
+        loadUnitNamesIntoSpinner();
+
         Bundle bundle = getArguments();
         if (bundle != null) {
             String hoTen = bundle.getString("hoTen", "");
@@ -105,58 +127,60 @@ public class EmployeeEdit extends Fragment {
             byte[] avatarByteArray = bundle.getByteArray("avatar");
             String tenDv = bundle.getString("tenDonVi", "");
 
-            edtten.setText(hoTen);
-            edtcv.setText(chucVu);
-            edtmail.setText(email);
-            edtsdt.setText(sdt);
-            spintendv.setText(tenDv);
+            edtTen.setText(hoTen);
+            edtChucVu.setText(chucVu);
+            edtEmail.setText(email);
+            edtSdt.setText(sdt);
+            // Set the spinner selection based on the unit name
+            spinTenDv.setSelection(((ArrayAdapter<String>) spinTenDv.getAdapter()).getPosition(tenDv));
 
             if (avatarByteArray != null) {
                 Bitmap bitmap = BitmapFactory.decodeByteArray(avatarByteArray, 0, avatarByteArray.length);
                 imageViewAnhDaiDienNV.setImageBitmap(bitmap);
             }
         }
-        btnup.setOnClickListener(new View.OnClickListener() {
+
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lấy dữ liệu từ các trường nhập
-                String hoTen = edtten.getText().toString();
-                String chucVu = edtcv.getText().toString();
-                String email = edtmail.getText().toString();
-                String sdt = edtsdt.getText().toString();
-                String tenDv = spintendv.getText().toString();
-                Bitmap avatarBitmap = ((BitmapDrawable)imageViewAnhDaiDienNV.getDrawable()).getBitmap();
-
-                // Kiểm tra email và số điện thoại không giống nhau
-                if (!email.equals(sdt)) {
-                    // Thực hiện cập nhật dữ liệu vào cơ sở dữ liệu
-                    boolean success = updateEmployeeData(hoTen, chucVu, email, sdt, avatarBitmap, tenDv);
-
-                    if (success) {
-                        // Hiển thị thông báo cập nhật thành công (nếu cần)
-                        Toast.makeText(getActivity(), "Đã cập nhật thông tin nhân viên", Toast.LENGTH_SHORT).show();
-
-                        // Hiển thị dữ liệu đã cập nhật vào fragment EmployeeDetail
-                        Fragment employeeDetailFragment = EmployeeDetail.newInstance(hoTen, chucVu, email, sdt, avatarBitmap, tenDv);
-                        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame_layout, employeeDetailFragment);
-                        transaction.addToBackStack(null);  // Để có thể quay lại fragment trước đó
-                        transaction.commit();
-                    } else {
-                        // Hiển thị thông báo lỗi cập nhật (nếu cần)
-                        Toast.makeText(getActivity(), "Có lỗi xảy ra khi cập nhật thông tin nhân viên", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    // Hiển thị thông báo lỗi khi email và số điện thoại giống nhau
-                    Toast.makeText(getActivity(), "Email và số điện thoại không được giống nhau", Toast.LENGTH_SHORT).show();
-                }
+                updateEmployee();
             }
         });
 
         return view;
-
     }
- DatabaseHelper databaseHelper;
+
+    private void updateEmployee() {
+        // Get data from fields
+        String hoTen = edtTen.getText().toString();
+        String chucVu = edtChucVu.getText().toString();
+        String email = edtEmail.getText().toString();
+        String sdt = edtSdt.getText().toString();
+        String tenDv = spinTenDv.getSelectedItem().toString();
+        Bitmap avatarBitmap = ((BitmapDrawable) imageViewAnhDaiDienNV.getDrawable()).getBitmap();
+
+        // Check if email and phone number are not the same
+        if (!email.equals(sdt)) {
+            // Update the data in the database
+            boolean success = updateEmployeeData(hoTen, chucVu, email, sdt, avatarBitmap, tenDv);
+
+            if (success) {
+                // Show success message
+                Toast.makeText(getActivity(), "Đã cập nhật thông tin nhân viên", Toast.LENGTH_SHORT).show();
+
+                // Display the updated data in the EmployeeDetail fragment
+                Fragment employeeDetailFragment = EmployeeDetail.newInstance(hoTen, chucVu, email, sdt, avatarBitmap, tenDv);
+                FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame_layout, employeeDetailFragment);
+                transaction.addToBackStack(null);  // To allow back navigation to the previous fragment
+                transaction.commit();
+            } else {
+                // Show error message
+                Toast.makeText(getActivity(), "Có lỗi xảy ra khi cập nhật thông tin nhân viên", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private boolean updateEmployeeData(String hoTen, String chucVu, String email, String sdt, Bitmap avatarBitmap, String tenDv) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -167,9 +191,7 @@ public class EmployeeEdit extends Fragment {
         values.put(DatabaseHelper.COLUMN_TEN_DONVI_NV, tenDv);
 
         // Convert Bitmap to byte array
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        avatarBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
+        byte[] byteArray = bitmapToByteArray(avatarBitmap);
         values.put(DatabaseHelper.COLUMN_ANHDAIDIEN_NV, byteArray);
 
         // Update row
@@ -180,5 +202,41 @@ public class EmployeeEdit extends Fragment {
         return rowsAffected > 0;
     }
 
+    private void loadUnitNamesIntoSpinner() {
+        List<String> unitNames = databaseHelper.getAllUnitNames();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, unitNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinTenDv.setAdapter(adapter);
+    }
+    Bitmap anhDaiDienBitmap;
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            // Handle image selection
+            Uri selectedImage = data.getData();
+            try {
+                anhDaiDienBitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), selectedImage);
 
+                // Calculate the desired size for the circular image
+                int sizeInDp = 120;
+                int sizeInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, sizeInDp, getResources().getDisplayMetrics());
+
+                // Create a square bitmap with the desired size
+                Bitmap squareBitmap = Bitmap.createScaledBitmap(anhDaiDienBitmap, sizeInPx, sizeInPx, true);
+
+                // Create circular image
+                Bitmap circleBitmap = Bitmap.createBitmap(sizeInPx, sizeInPx, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(circleBitmap);
+                Paint paint = new Paint();
+                paint.setAntiAlias(true);
+                canvas.drawCircle(sizeInPx / 2f, sizeInPx / 2f, sizeInPx / 2f, paint);
+                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+                canvas.drawBitmap(squareBitmap, 0, 0, paint);
+
+                imageViewAnhDaiDienNV.setImageBitmap(circleBitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

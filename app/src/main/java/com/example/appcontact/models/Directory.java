@@ -11,8 +11,9 @@ public class Directory {
     public String diaChi;
     public String maDonViCha;
     public Bitmap logo;
-
-    public Directory(int maDonVi, String tenDonVi, String email, String website, String diaChi,String sdt,  Bitmap logo) {
+    private boolean isHeader;
+    private String firstLetter;
+    public Directory(int maDonVi, String tenDonVi, String email, String website, String diaChi,String sdt,  Bitmap logo,boolean isHeader) {
         this.maDonVi = maDonVi;
         this.tenDonVi = tenDonVi;
         this.email = email;
@@ -20,6 +21,19 @@ public class Directory {
         this.sdt = sdt;
         this.diaChi = diaChi;
         this.logo = logo;
+        this.isHeader = isHeader;
+        if (!isHeader) {
+            this.firstLetter = tenDonVi.substring(0, 1).toUpperCase();
+        }
+    }
+    public Directory(String tenDonVi) {
+        this.tenDonVi = tenDonVi;
+        this.isHeader = true;
+        this.firstLetter = tenDonVi.substring(0, 1).toUpperCase();
+    }
+
+    public boolean isHeader() {
+        return isHeader;
     }
 
     public int getMaDonVi() {

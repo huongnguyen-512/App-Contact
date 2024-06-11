@@ -162,7 +162,7 @@ public class EmployeeDetail extends Fragment {
     }
 
 
-    private static byte[] convertBitmapToByteArray(Bitmap bitmap) {
+    static byte[] convertBitmapToByteArray(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
         return stream.toByteArray();

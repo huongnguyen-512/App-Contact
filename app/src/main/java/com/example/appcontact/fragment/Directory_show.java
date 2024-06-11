@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
@@ -30,7 +33,6 @@ import com.example.appcontact.fragment.detail.DirectoryDetail;
 import com.example.appcontact.models.DatabaseHelper;
 import com.example.appcontact.models.Directory;
 import com.example.appcontact.models.DirectoryAdapter;
-import com.example.appcontact.models.Employee;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -46,6 +48,7 @@ public class Directory_show extends Fragment {
     private ListView listViewDirectories;
     private ArrayList<Directory> directlist;
     private DirectoryAdapter adapter;
+    private EditText edtTk;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -91,7 +94,8 @@ public class Directory_show extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_directory_show, container, false);
-        ImageButton btnAdd = view.findViewById(R.id.btnaddDV);
+        edtTk = view.findViewById(R.id.searchdirec);
+        btnAdd = view.findViewById(R.id.btnaddDV);
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,10 +111,16 @@ public class Directory_show extends Fragment {
         dbhelper = new DatabaseHelper(context);
 
         directlist = new ArrayList<>();
-        loadDirects();
 
         adapter = new DirectoryAdapter(getActivity(), directlist);
         listViewDirectories.setAdapter(adapter);
+        if (!loadDirects()) {
+            Toast.makeText(requireContext(), "No directs found", Toast.LENGTH_SHORT).show();
+        } else {
+            adapter = new DirectoryAdapter(getActivity(), directlist);
+            listViewDirectories.setAdapter(adapter);
+        }
+
         listViewDirectories.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             // Inside onItemClick method
             @Override
@@ -149,13 +159,33 @@ public class Directory_show extends Fragment {
 
 
         });
+        edtTk.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterDirect(s.toString());
+            }
+        });
         return  view;
     }
-    private void loadDirects() {
+    private boolean loadDirects() {
         SQLiteDatabase db = dbhelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_DONVI, null, null, null, null, null, null);
+        if (cursor.getCount() == 0) {
+            cursor.close();
+            db.close();
+            return false; // No employees found
+        }
 
+        directlist.clear();
+        String currentHeader = null;
         if (cursor.moveToFirst()) {
             do {
                 byte[] imgByteArray = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LOGO_DONVI));
@@ -170,7 +200,13 @@ public class Directory_show extends Fragment {
                 Bitmap bitmap = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.length);
                 // Giảm kích thước của bitmap
                 bitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
-                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap); // Pass employeeId to constructor
+
+                String firstLetter = tenDonVi.substring(0, 1).toUpperCase();
+                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                    currentHeader = firstLetter;
+                    directlist.add(new Directory(currentHeader));
+                }
+                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap,false); // Pass employeeId to constructor
                 directlist.add(directory);
 
             } while (cursor.moveToNext());
@@ -178,37 +214,29 @@ public class Directory_show extends Fragment {
 
         cursor.close();
         db.close();
+        return true;
     }
-    private void showPopupMenu(View view) {
-        PopupMenu popup = new PopupMenu(requireContext(), view);
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.popup_menu, popup.getMenu());
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.ic_chon1) {
-                    toggleCheckBoxVisibility(true);
-                    return true;
-                } else if (id == R.id.chontat) {
-                    toggleCheckBoxVisibility(true);
-                    return true;
-                } else {
-                    return false;
+
+    private void filterDirect (String searchText) {
+        ArrayList<Directory> filteredList = new ArrayList<>();
+        String currentHeader = null;
+
+        for (Directory directory : directlist) {
+            if (directory.isHeader()) {
+                currentHeader = directory.getTenDonVi();
+                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getTenDonVi())) {
+                    filteredList.add(directory);
                 }
+            } else if (directory.getTenDonVi().toLowerCase().contains(searchText.toLowerCase())) {
+                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getTenDonVi())) {
+                    filteredList.add(new Directory(directory.getTenDonVi().substring(0, 1).toUpperCase()));
+                }
+                filteredList.add(directory);
             }
-        });
-        popup.show();
-    }
-
-    private void toggleCheckBoxVisibility(boolean isVisible) {
-        int visibility = isVisible ? View.VISIBLE : View.GONE;
-
-        for (int i = 0; i < listViewDirectories.getChildCount(); i++) {
-            View view = listViewDirectories.getChildAt(i);
-            CheckBox checkBox = view.findViewById(R.id.checkBox);
-            checkBox.setVisibility(visibility);
         }
+
+        adapter = new DirectoryAdapter(getActivity(), filteredList);
+        listViewDirectories.setAdapter(adapter);
     }
 
 }

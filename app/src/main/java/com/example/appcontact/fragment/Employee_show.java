@@ -24,7 +24,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.appcontact.R;
@@ -47,7 +46,6 @@ public class Employee_show extends Fragment {
     private ListView listViewEmployees;
     private ArrayList<Employee> employlist;
     private EmployeeAdapter adapter;
-    private Button btnxoa, btnsua;
     private EditText edtTk;
 
     public static Employee_show newInstance(String param1, String param2) {
@@ -64,7 +62,6 @@ public class Employee_show extends Fragment {
 
 
     @Override
-
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_employee_show2, container, false);
         edtTk = view.findViewById(R.id.edtTKNV);
@@ -80,8 +77,6 @@ public class Employee_show extends Fragment {
                 transaction.commit();
             }
         });
-
-
 
         listViewEmployees = view.findViewById(R.id.list_view_employee);
 
@@ -131,6 +126,7 @@ public class Employee_show extends Fragment {
                 }
             }
         });
+
         edtTk.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -145,12 +141,13 @@ public class Employee_show extends Fragment {
                 filterEmployees(s.toString());
             }
         });
+
         return view;
     }
 
     private boolean loadEmployees() {
         SQLiteDatabase db = dbhelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_NHANVIEN, null, null, null, null, null, null);
+        Cursor cursor = db.query(DatabaseHelper.TABLE_NHANVIEN, null, null, null, null, null, DatabaseHelper.COLUMN_HOTEN_NV + " ASC");
 
         if (cursor.getCount() == 0) {
             cursor.close();
@@ -175,7 +172,6 @@ public class Employee_show extends Fragment {
 
                 // Get the first letter of the employee's name
                 String firstLetter = hoTen.substring(0, 1).toUpperCase();
-//                String selectedDonVi = spTendvi.getSelectedItem().toString();
 
                 // If the header doesn't exist or is different, create a new header
                 if (currentHeader == null || !currentHeader.equals(firstLetter)) {
@@ -183,7 +179,7 @@ public class Employee_show extends Fragment {
                     employlist.add(new Employee(currentHeader));
                 }
 
-                Employee employee = new Employee(employeeId, hoTen, chucvu, email, sdt, bitmap, false,  tenDvi);
+                Employee employee = new Employee(employeeId, hoTen, chucvu, email, sdt, bitmap, false, tenDvi);
                 employlist.add(employee);
             } while (cursor.moveToNext());
         }
@@ -191,35 +187,28 @@ public class Employee_show extends Fragment {
         cursor.close();
         db.close();
 
-        // Sort the list alphabetically by employee names (excluding headers)
-        Collections.sort(employlist.subList(1, employlist.size()), new Comparator<Employee>() {
-            @Override
-            public int compare(Employee e1, Employee e2) {
-                // If both have the same first letter, sort by their names
-                if (e1.getHoTen().substring(0, 1).equalsIgnoreCase(e2.getHoTen().substring(0, 1))) {
-                    return e1.getHoTen().compareToIgnoreCase(e2.getHoTen());
-                } else {
-                    // Otherwise, sort by the first letter
-                    return e1.getHoTen().substring(0, 1).compareToIgnoreCase(e2.getHoTen().substring(0, 1));
-                }
-            }
-        });
-
         return true; // Employees loaded successfully
     }
+
     private void filterEmployees(String searchText) {
         ArrayList<Employee> filteredList = new ArrayList<>();
+        String currentHeader = null;
 
         for (Employee employee : employlist) {
-            // Check if the employee name contains the search text
-            if (employee.getHoTen().toLowerCase().contains(searchText.toLowerCase())) {
+            if (employee.isHeader()) {
+                currentHeader = employee.getHoTen();
+                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getHoTen())) {
+                    filteredList.add(employee);
+                }
+            } else if (employee.getHoTen().toLowerCase().contains(searchText.toLowerCase())) {
+                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getHoTen())) {
+                    filteredList.add(new Employee(employee.getHoTen().substring(0, 1).toUpperCase()));
+                }
                 filteredList.add(employee);
             }
         }
 
-        // Update the adapter with the filtered list
         adapter = new EmployeeAdapter(getActivity(), filteredList);
         listViewEmployees.setAdapter(adapter);
     }
-
 }

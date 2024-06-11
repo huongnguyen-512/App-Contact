@@ -54,7 +54,7 @@
                     android:text="Tên đơn vị: "
                     android:textSize="20sp"
                     android:textStyle="bold" />
-                <EditText
+                <Spinner
                     android:id="@+id/spinTendviup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

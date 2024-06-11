@@ -26,37 +26,52 @@ public class DirectoryAdapter extends ArrayAdapter<Directory> {
     public DirectoryAdapter(@NonNull Context context, ArrayList<Directory> directoryArrayListArrayList ) {
         super(context, R.layout.custom_listview, directoryArrayListArrayList);
     }
-
+    @Override
+    public int getViewTypeCount() {
+        return 2; // header and item
+    }
+    @Override
+    public int getItemViewType(int position) {
+        Directory directory = getItem(position);
+        return directory.isHeader() ? TYPE_HEADER : TYPE_ITEM;
+    }
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_ITEM = 1;
 
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Directory directory = getItem(position);
+        int viewType = getItemViewType(position);
         DirectoryAdapter.ViewHolder viewHolder;
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.custom_listview, parent, false);
             viewHolder = new DirectoryAdapter.ViewHolder();
-            viewHolder.listimg = convertView.findViewById(R.id.logo);
-            viewHolder.txtname = convertView.findViewById(R.id.txtName);
-            viewHolder.txtsdt = convertView.findViewById(R.id.txtSDT);
+            if (viewType == TYPE_HEADER) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.header_lsv, parent, false);
+                viewHolder.headerText = convertView.findViewById(R.id.txt_group_title);
+            } else {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.custom_listview, parent, false);
+                viewHolder.listimg = convertView.findViewById(R.id.logo);
+                viewHolder.txtname = convertView.findViewById(R.id.txtName);
+                viewHolder.txtsdt = convertView.findViewById(R.id.txtSDT);
+            }
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (DirectoryAdapter.ViewHolder) convertView.getTag();
         }
 
-        // Displaying employee details
-        if (directory != null) {
-            // Get the Bitmap directly from the Employee object
-            Bitmap img = directory.logo;
-
-            // Create a circular bitmap with a desired size (e.g., 200x200 pixels)
-            Bitmap circularBitmap = getRoundedBitmap(img, 200);
-
-            viewHolder.listimg.setImageBitmap(circularBitmap);
-            viewHolder.txtname.setText(directory.tenDonVi);
-            viewHolder.txtsdt.setText(directory.sdt);
+        Directory directory = getItem(position);
+        if (viewType == TYPE_HEADER) {
+            viewHolder.headerText.setText(directory.getTenDonVi());
+        } else {
+            if (directory != null) {
+                Bitmap img = directory.getLogo();
+                Bitmap circularBitmap = getRoundedBitmap(img, 200);
+                viewHolder.listimg.setImageBitmap(circularBitmap);
+                viewHolder.txtname.setText(directory.getTenDonVi());
+                viewHolder.txtsdt.setText(directory.getSdt());
+            }
         }
 
         return convertView;
@@ -64,6 +79,7 @@ public class DirectoryAdapter extends ArrayAdapter<Directory> {
     static class ViewHolder {
         ImageView listimg;
         TextView txtname, txtsdt;
+        TextView headerText;
     }
 
     // Utility method to create a rounded bitmap with the desired size

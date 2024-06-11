@@ -6,9 +6,145 @@
     tools:context=".fragment.DirectoryEdit">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        > <!-- Điều chỉnh khoảng cách marginBottom theo chiều cao của Navigation Bottom -->
+
+        <!-- TODO: Update blank fragment layout -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Sửa thông tin đơn vị"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_marginTop="20dp"
+                android:id="@+id/imageViewLogoDonViup"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:background="@drawable/roundimg" />
+
+            <Button
+                android:id="@+id/textViewOnImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Thêm ảnh"
+                android:textSize="16sp"
+                android:background="#00FFFFFF"
+                android:textColor="@color/primary_text"
+                android:padding="4dp"/>
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tên đơn vị:"
+                android:textStyle="bold"
+                android:textSize="15sp"  />
+
+            <EditText
+                android:id="@+id/editTextTenDonViup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tên đơn vị" />
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email đơn vị:"
+                android:textStyle="bold"
+                android:textSize="15sp"  />
+            <EditText
+                android:id="@+id/editTextEmailDonViup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email" />
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Website đơn vị:"
+                android:textStyle="bold"
+                android:textSize="15sp"  />
+            <EditText
+                android:id="@+id/editTextWebsiteDonViup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Website" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Địa chỉ:"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/editTextDiaChiDonViup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Địa chỉ" />
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Số điện thoại:"
+                android:textStyle="bold"
+                android:textSize="15sp"  />
+            <EditText
+                android:id="@+id/editTextSdtDonViup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Số điện thoại" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Mã đơn vị cha:"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edtMadvcha"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Mã đơn vị cha" />
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_gravity="center">
+                <Button
+                    android:id="@+id/buttonSaveDonviup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cập nhật" />
+                <Button
+                    android:layout_marginLeft="20dp"
+                    android:id="@+id/btnbackDvi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thoát" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
 </FrameLayout>

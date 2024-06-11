@@ -3,8 +3,6 @@ package com.example.appcontact.models;
 import android.graphics.Bitmap;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class Employee implements Serializable {
     private int maNV;

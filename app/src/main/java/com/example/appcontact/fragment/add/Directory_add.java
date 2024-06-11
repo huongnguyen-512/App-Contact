@@ -133,7 +133,6 @@ public class Directory_add extends Fragment {
         return view;
     }
     private void saveDonVi() {
-//        String maDV = edtmaDV.getText().toString();
         String tenDV = edtTendv.getText().toString();
         String email = edtMailDv.getText().toString();
         String website = edtWeb.getText().toString();
@@ -154,7 +153,6 @@ public class Directory_add extends Fragment {
 
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
-//        values.put(DatabaseHelper.COLUMN_MA_DONVI, maDV);
         values.put(DatabaseHelper.COLUMN_TEN_DONVI, tenDV);
         values.put(DatabaseHelper.COLUMN_EMAIL_DONVI, email);
         values.put(DatabaseHelper.COLUMN_WEBSITE_DONVI, website);
