@@ -101,7 +101,7 @@ public class Directory_add extends Fragment {
         logoDV =view.findViewById(R.id.imageViewLogoDonVi);
         buttonSaveDv = view.findViewById(R.id.buttonSaveDonvi);
         btnout = view.findViewById(R.id.btnbackDvi);
-
+        edtMadvCha= view.findViewById(R.id.edtMadvcha);
         btnout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,7 +138,7 @@ public class Directory_add extends Fragment {
         String website = edtWeb.getText().toString();
         String sdt = edtsdtDV.getText().toString();
         String diaChi =edtdcDv.getText().toString();
-
+        String idcha = edtMadvCha.getText().toString();
         // Ensure all fields are filled and image is selected
         if ( tenDV.isEmpty() || email.isEmpty() || website.isEmpty() ||sdt.isEmpty() ||diaChi.isEmpty() || anhDaiDienBitmap == null) {
             Toast.makeText(getContext(), "Please fill all fields and select an image.", Toast.LENGTH_SHORT).show();
@@ -158,6 +158,7 @@ public class Directory_add extends Fragment {
         values.put(DatabaseHelper.COLUMN_WEBSITE_DONVI, website);
         values.put(DatabaseHelper.COLUMN_DIACHI_DONVI, diaChi);
         values.put(DatabaseHelper.COLUMN_SDT_DONVI, sdt);
+        values.put(DatabaseHelper.COLUMN_MA_DONVI_CHA,idcha);
         values.put(DatabaseHelper.COLUMN_LOGO_DONVI, byteArray);
 
         long newRowId = db.insert(DatabaseHelper.TABLE_DONVI , null, values);

@@ -135,6 +135,7 @@ public class Directory_show extends Fragment {
                 bundle.putString("website", selectedDirectory.getWebsite());
                 bundle.putString("sdt", selectedDirectory.getSdt());
                 bundle.putString("diaChi", selectedDirectory.getDiaChi());
+                bundle.putString("idCha",selectedDirectory.getMaDonViCha());
                 // Convert the avatar Bitmap to a byte array
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 selectedDirectory.getLogo().compress(Bitmap.CompressFormat.PNG, 100, stream);
@@ -189,7 +190,7 @@ public class Directory_show extends Fragment {
         if (cursor.moveToFirst()) {
             do {
                 byte[] imgByteArray = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LOGO_DONVI));
-                String maDonVi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MA_DONVI));
+                String idCha = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MA_DONVI_CHA));
                 String tenDonVi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TEN_DONVI));
                 String email = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_EMAIL_DONVI));
                 String website = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WEBSITE_DONVI));
@@ -206,7 +207,7 @@ public class Directory_show extends Fragment {
                     currentHeader = firstLetter;
                     directlist.add(new Directory(currentHeader));
                 }
-                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap,false); // Pass employeeId to constructor
+                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap,idCha, false); // Pass employeeId to constructor
                 directlist.add(directory);
 
             } while (cursor.moveToNext());

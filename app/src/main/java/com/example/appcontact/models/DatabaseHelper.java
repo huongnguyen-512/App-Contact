@@ -28,6 +28,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_LOGO_DONVI = "logo";
     public static final String COLUMN_DIACHI_DONVI = "diaChi";
     public static final String COLUMN_SDT_DONVI = "sdt";
+    public static final String COLUMN_MA_DONVI_CHA = "idcha";
 
     // Table NhanVien
     public static final String TABLE_NHANVIEN = "NhanVien";
@@ -56,8 +57,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_WEBSITE_DONVI + " TEXT, " +
                 COLUMN_LOGO_DONVI + " BLOB, " +
                 COLUMN_DIACHI_DONVI + " TEXT, " +
-                COLUMN_SDT_DONVI + " TEXT)";
+                COLUMN_SDT_DONVI + " TEXT, " +
+                COLUMN_MA_DONVI_CHA + " TEXT)";
         db.execSQL(createTableDonVi);
+
 
         String createTableNhanVien = "CREATE TABLE " + TABLE_NHANVIEN + " (" +
                 COLUMN_MA_NV + " INTEGER PRIMARY KEY AUTOINCREMENT, " +

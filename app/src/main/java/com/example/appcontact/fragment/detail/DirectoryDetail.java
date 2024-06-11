@@ -30,7 +30,7 @@ public class DirectoryDetail extends Fragment {
     private DatabaseHelper databaseHelper;
     private Button btnsua, btnxoa;
 
-    public static DirectoryEdit newInstance(String tenDonvi, String email, String web, String diaChi, String sdt, Bitmap avatarBitmap) {
+    public static DirectoryEdit newInstance(String tenDonvi, String email, String web, String diaChi, String sdt,String idCha, Bitmap avatarBitmap) {
         DirectoryEdit fragment = new DirectoryEdit();
         Bundle args = new Bundle();
         args.putString("tenDonVi", tenDonvi);
@@ -39,6 +39,7 @@ public class DirectoryDetail extends Fragment {
         args.putString("sdt", sdt);
         args.putString("website", web); // Update key name
         args.putByteArray("logo", convertBitmapToByteArray(avatarBitmap));
+        args.putString("idCha", idCha);
         fragment.setArguments(args);
         return fragment;
     }
@@ -72,11 +73,12 @@ public class DirectoryDetail extends Fragment {
                     String email = bundle.getString("email", "");
                     String sdt = bundle.getString("sdt", "");
                     String diaChi = bundle.getString("diaChi", "");
+                    String idCha = bundle.getString("idCha","");
                     byte[] avatarByteArray = bundle.getByteArray("logo");
 
                     Bitmap avatarBitmap = BitmapFactory.decodeByteArray(avatarByteArray, 0, avatarByteArray.length);
 
-                    DirectoryEdit fragment = DirectoryEdit.newInstance(tenDonvi, email, web, diaChi, sdt, avatarBitmap);
+                    DirectoryEdit fragment = DirectoryEdit.newInstance(tenDonvi, email, web, diaChi, sdt, idCha,avatarBitmap);
 
                     FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
                     transaction.replace(R.id.frame_layout, fragment);
@@ -100,6 +102,7 @@ public class DirectoryDetail extends Fragment {
             String website = bundle.getString("website", "");
             String sdt = bundle.getString("sdt", "");
             String diaChi = bundle.getString("diaChi", "");
+            String idCha = bundle.getString("icCha", "");
             byte[] avatarByteArray = bundle.getByteArray("logo");
 
             txtTenDv.setText(tenDonVi);

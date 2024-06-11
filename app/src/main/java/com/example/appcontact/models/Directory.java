@@ -9,11 +9,12 @@ public class Directory {
     public String website;
     public String sdt;
     public String diaChi;
-    public String maDonViCha;
+    public String idCha;
     public Bitmap logo;
     private boolean isHeader;
+
     private String firstLetter;
-    public Directory(int maDonVi, String tenDonVi, String email, String website, String diaChi,String sdt,  Bitmap logo,boolean isHeader) {
+    public Directory(int maDonVi, String tenDonVi, String email, String website, String diaChi,String sdt,  Bitmap logo, String idCha,boolean isHeader) {
         this.maDonVi = maDonVi;
         this.tenDonVi = tenDonVi;
         this.email = email;
@@ -21,6 +22,7 @@ public class Directory {
         this.sdt = sdt;
         this.diaChi = diaChi;
         this.logo = logo;
+        this.idCha = idCha;
         this.isHeader = isHeader;
         if (!isHeader) {
             this.firstLetter = tenDonVi.substring(0, 1).toUpperCase();
@@ -39,6 +41,15 @@ public class Directory {
     public int getMaDonVi() {
         return maDonVi;
     }
+
+
+    public void setMaDonViCha(String maDonViCha) {
+        this.idCha = maDonViCha;
+    }
+    public String getMaDonViCha() {
+        return idCha;
+    }
+
 
     public void setMaDonVi(int maDonVi) {
         this.maDonVi = maDonVi;

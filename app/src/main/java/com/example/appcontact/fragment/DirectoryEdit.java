@@ -73,7 +73,7 @@ public class DirectoryEdit extends Fragment {
     }
 
 
-    private EditText edtTen, edtdiachi, edtweb, edtEmail, edtSdt;
+    private EditText edtTen, edtdiachi, edtweb, edtEmail, edtSdt, edtidcha;
     private Button btnUpdate;
     private DatabaseHelper databaseHelper;
     ImageView img;
@@ -84,10 +84,11 @@ public class DirectoryEdit extends Fragment {
         String email = edtEmail.getText().toString();
         String sdt = edtSdt.getText().toString();
         String diachi = edtdiachi.getText().toString();
+        String idcha = edtidcha.getText().toString();
         Bitmap avatarBitmap = ((BitmapDrawable) img.getDrawable()).getBitmap();
 
         // Update directory data in the database
-        boolean success = updateDirectoryData(tenDonvi, email, web, diachi, sdt, avatarBitmap);
+        boolean success = updateDirectoryData(tenDonvi, email, web, diachi, sdt, idcha, avatarBitmap);
 
         if (success) {
             // Show success message
@@ -95,7 +96,7 @@ public class DirectoryEdit extends Fragment {
 
             // Check if activity is not null and fragment manager is available
             if (getActivity() != null && getActivity().getSupportFragmentManager() != null) {
-                Fragment directoryDetailFragment = DirectoryDetail.newInstance(tenDonvi, email, web, diachi, sdt, avatarBitmap);
+                Fragment directoryDetailFragment = DirectoryDetail.newInstance(tenDonvi, email, web, diachi, sdt, idcha,avatarBitmap);
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame_layout, directoryDetailFragment);
                 transaction.addToBackStack(null);  // To allow back navigation to the previous fragment
@@ -129,6 +130,7 @@ public class DirectoryEdit extends Fragment {
         edtSdt = view.findViewById(R.id.editTextSdtDonViup);
         edtweb = view.findViewById(R.id.editTextWebsiteDonViup);
         btnUpdate = view.findViewById(R.id.buttonSaveDonviup);
+        edtidcha =view.findViewById(R.id.edtMadvcha);
         img = view.findViewById(R.id.imageViewLogoDonViup);
         databaseHelper = new DatabaseHelper(getActivity());
         // Lấy dữ liệu từ Bundle
@@ -139,6 +141,8 @@ public class DirectoryEdit extends Fragment {
             String email = bundle.getString("email", "");
             String sdt = bundle.getString("sdt", "");
             String website = bundle.getString("website", "");
+            String idCha = bundle.getString("idCha", ""); // Correct key name is "idCha"
+
             byte[] avatarByteArray = bundle.getByteArray("logo"); // Đổi "avatar" thành "logo"
 
             // Đặt dữ liệu lên các EditText
@@ -147,7 +151,7 @@ public class DirectoryEdit extends Fragment {
             edtEmail.setText(email);
             edtSdt.setText(sdt);
             edtweb.setText(website);
-
+            edtidcha.setText(idCha);
             // Nếu có dữ liệu avatar, chuyển đổi thành Bitmap và hiển thị lên ImageView
             if (avatarByteArray != null) {
                 Bitmap bitmap = BitmapFactory.decodeByteArray(avatarByteArray, 0, avatarByteArray.length);
@@ -197,7 +201,7 @@ public class DirectoryEdit extends Fragment {
             }
         }
     }
-    public static DirectoryEdit newInstance(String tenDonvi, String email, String web, String diaChi, String sdt, Bitmap avatarBitmap) {
+    public static DirectoryEdit newInstance(String tenDonvi, String email, String web, String diaChi, String sdt, String idCha, Bitmap avatarBitmap) {
         DirectoryEdit fragment = new DirectoryEdit();
         Bundle args = new Bundle();
         args.putString("tenDonVi", tenDonvi);
@@ -206,6 +210,7 @@ public class DirectoryEdit extends Fragment {
         args.putString("sdt", sdt);
         args.putString("website", web); // Update key name
         args.putByteArray("logo", bitmapToByteArray(avatarBitmap));
+        args.putString("idCha", idCha);
         fragment.setArguments(args);
         return fragment;
     }
@@ -215,7 +220,7 @@ public class DirectoryEdit extends Fragment {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
         return stream.toByteArray();
     }
-    private boolean updateDirectoryData(String tenDonVi, String email, String website, String diaChi,String sdt,  Bitmap logo) {
+    private boolean updateDirectoryData(String tenDonVi, String email, String website, String diaChi,String sdt, String idCha,  Bitmap logo) {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_TEN_DONVI,tenDonVi );
@@ -223,7 +228,7 @@ public class DirectoryEdit extends Fragment {
         values.put(DatabaseHelper.COLUMN_WEBSITE_DONVI, website);
         values.put(DatabaseHelper.COLUMN_SDT_DONVI, sdt);
         values.put(DatabaseHelper.COLUMN_DIACHI_DONVI, diaChi);
-
+        values.put(DatabaseHelper.COLUMN_MA_DONVI_CHA, idCha);
         // Convert Bitmap to byte array
         byte[] byteArray = bitmapToByteArray(logo);
         values.put(DatabaseHelper.COLUMN_LOGO_DONVI, byteArray);
