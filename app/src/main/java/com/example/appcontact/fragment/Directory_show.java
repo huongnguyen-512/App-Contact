@@ -35,7 +35,11 @@ import com.example.appcontact.models.Directory;
 import com.example.appcontact.models.DirectoryAdapter;
 
 import java.io.ByteArrayOutputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.regex.Pattern;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -50,12 +54,9 @@ public class Directory_show extends Fragment {
     private DirectoryAdapter adapter;
     private EditText edtTk;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
@@ -63,15 +64,6 @@ public class Directory_show extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Directory_show.
-     */
-    // TODO: Rename and change types and number of parameters
     public static Directory_show newInstance(String param1, String param2) {
         Directory_show fragment = new Directory_show();
         Bundle args = new Bundle();
@@ -101,8 +93,8 @@ public class Directory_show extends Fragment {
             public void onClick(View v) {
                 Fragment fragment = new Directory_add();
                 FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame_layout, fragment); // R.id.fragment_container is the ID of the container where you want to replace the fragment
-                transaction.addToBackStack(null); // Add transaction to back stack to allow back navigation
+                transaction.replace(R.id.frame_layout, fragment);
+                transaction.addToBackStack(null);
                 transaction.commit();
             }
         });
@@ -115,38 +107,33 @@ public class Directory_show extends Fragment {
         adapter = new DirectoryAdapter(getActivity(), directlist);
         listViewDirectories.setAdapter(adapter);
         if (!loadDirects()) {
-            Toast.makeText(requireContext(), "No directs found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), "No directories found", Toast.LENGTH_SHORT).show();
         } else {
             adapter = new DirectoryAdapter(getActivity(), directlist);
             listViewDirectories.setAdapter(adapter);
         }
 
         listViewDirectories.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            // Inside onItemClick method
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Retrieve the selected employee from the list
                 Directory selectedDirectory = directlist.get(position);
 
-                // Pass the selected employee data to the detail fragment
                 Bundle bundle = new Bundle();
                 bundle.putString("tenDonVi", selectedDirectory.getTenDonVi());
                 bundle.putString("email", selectedDirectory.getEmail());
                 bundle.putString("website", selectedDirectory.getWebsite());
                 bundle.putString("sdt", selectedDirectory.getSdt());
                 bundle.putString("diaChi", selectedDirectory.getDiaChi());
-                bundle.putString("idCha",selectedDirectory.getMaDonViCha());
-                // Convert the avatar Bitmap to a byte array
+                bundle.putString("idCha", selectedDirectory.getMaDonViCha());
+
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 selectedDirectory.getLogo().compress(Bitmap.CompressFormat.PNG, 100, stream);
                 byte[] byteArray = stream.toByteArray();
                 bundle.putByteArray("logo", byteArray);
 
-                // Navigate to the detail fragment
                 DirectoryDetail detailFragment = new DirectoryDetail();
                 detailFragment.setArguments(bundle);
 
-                // Check if the container view exists in the activity layout
                 View container = requireActivity().findViewById(R.id.frame_layout);
                 if(container != null) {
                     FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
@@ -157,9 +144,8 @@ public class Directory_show extends Fragment {
                     Toast.makeText(requireContext(), "Container view not found", Toast.LENGTH_SHORT).show();
                 }
             }
-
-
         });
+
         edtTk.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -174,19 +160,29 @@ public class Directory_show extends Fragment {
                 filterDirect(s.toString());
             }
         });
-        return  view;
+        return view;
     }
+
+    private String normalizeString(String input) {
+        if (input == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        normalized = pattern.matcher(normalized).replaceAll("");
+        return normalized.replaceAll("\\s+", " ").trim();
+    }
+
     private boolean loadDirects() {
         SQLiteDatabase db = dbhelper.getReadableDatabase();
         Cursor cursor = db.query(DatabaseHelper.TABLE_DONVI, null, null, null, null, null, null);
         if (cursor.getCount() == 0) {
             cursor.close();
             db.close();
-            return false; // No employees found
+            return false;
         }
 
         directlist.clear();
-        String currentHeader = null;
         if (cursor.moveToFirst()) {
             do {
                 byte[] imgByteArray = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LOGO_DONVI));
@@ -196,18 +192,12 @@ public class Directory_show extends Fragment {
                 String website = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WEBSITE_DONVI));
                 String diaChi = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DIACHI_DONVI));
                 String sdt = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_SDT_DONVI));
-               int direcid = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MA_DONVI));
+                int direcid = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_MA_DONVI));
 
                 Bitmap bitmap = BitmapFactory.decodeByteArray(imgByteArray, 0, imgByteArray.length);
-                // Giảm kích thước của bitmap
                 bitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
 
-                String firstLetter = tenDonVi.substring(0, 1).toUpperCase();
-                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
-                    currentHeader = firstLetter;
-                    directlist.add(new Directory(currentHeader));
-                }
-                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap,idCha, false); // Pass employeeId to constructor
+                Directory directory = new Directory(direcid, tenDonVi, email, website, diaChi, sdt, bitmap, idCha, false);
                 directlist.add(directory);
 
             } while (cursor.moveToNext());
@@ -215,12 +205,39 @@ public class Directory_show extends Fragment {
 
         cursor.close();
         db.close();
+
+        // Sort the list alphabetically by the normalized unit name
+        Collections.sort(directlist, new Comparator<Directory>() {
+            @Override
+            public int compare(Directory d1, Directory d2) {
+                String name1 = normalizeString(d1.getTenDonVi());
+                String name2 = normalizeString(d2.getTenDonVi());
+                return name1.compareTo(name2);
+            }
+        });
+
+        // Add headers after sorting
+        String currentHeader = null;
+        ArrayList<Directory> sortedListWithHeaders = new ArrayList<>();
+        for (Directory directory : directlist) {
+            String firstLetter = normalizeString(directory.getTenDonVi()).substring(0, 1).toUpperCase();
+            if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                currentHeader = firstLetter;
+                sortedListWithHeaders.add(new Directory(currentHeader));
+            }
+            sortedListWithHeaders.add(directory);
+        }
+
+        directlist.clear();
+        directlist.addAll(sortedListWithHeaders);
+
         return true;
     }
 
-    private void filterDirect (String searchText) {
+    private void filterDirect(String searchText) {
         ArrayList<Directory> filteredList = new ArrayList<>();
         String currentHeader = null;
+        String normalizedSearchText = normalizeString(searchText).toLowerCase();
 
         for (Directory directory : directlist) {
             if (directory.isHeader()) {
@@ -228,9 +245,11 @@ public class Directory_show extends Fragment {
                 if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getTenDonVi())) {
                     filteredList.add(directory);
                 }
-            } else if (directory.getTenDonVi().toLowerCase().contains(searchText.toLowerCase())) {
-                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getTenDonVi())) {
-                    filteredList.add(new Directory(directory.getTenDonVi().substring(0, 1).toUpperCase()));
+            } else if (normalizeString(directory.getTenDonVi()).toLowerCase().contains(normalizedSearchText)) {
+                String firstLetter = normalizeString(directory.getTenDonVi()).substring(0, 1).toUpperCase();
+                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                    currentHeader = firstLetter;
+                    filteredList.add(new Directory(currentHeader));
                 }
                 filteredList.add(directory);
             }
@@ -239,5 +258,4 @@ public class Directory_show extends Fragment {
         adapter = new DirectoryAdapter(getActivity(), filteredList);
         listViewDirectories.setAdapter(adapter);
     }
-
 }

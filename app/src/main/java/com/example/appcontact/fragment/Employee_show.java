@@ -6,10 +6,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-
+import java.util.Collections;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-
+import java.util.Comparator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -31,13 +31,17 @@ import com.example.appcontact.databinding.FragmentEmployeeShow2Binding;
 import com.example.appcontact.fragment.add.Employee_add;
 import com.example.appcontact.fragment.detail.EmployeeDetail;
 import com.example.appcontact.models.DatabaseHelper;
+import com.example.appcontact.models.Directory;
+import com.example.appcontact.models.DirectoryAdapter;
 import com.example.appcontact.models.Employee;
 import com.example.appcontact.models.EmployeeAdapter;
 
 import java.io.ByteArrayOutputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.regex.Pattern;
 
 public class Employee_show extends Fragment {
 
@@ -147,7 +151,7 @@ public class Employee_show extends Fragment {
 
     private boolean loadEmployees() {
         SQLiteDatabase db = dbhelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_NHANVIEN, null, null, null, null, null, DatabaseHelper.COLUMN_HOTEN_NV + " ASC");
+        Cursor cursor = db.query(DatabaseHelper.TABLE_NHANVIEN, null, null, null, null, null, null);
 
         if (cursor.getCount() == 0) {
             cursor.close();
@@ -171,13 +175,13 @@ public class Employee_show extends Fragment {
                 bitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false);
 
                 // Get the first letter of the employee's name
-                String firstLetter = hoTen.substring(0, 1).toUpperCase();
-
-                // If the header doesn't exist or is different, create a new header
-                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
-                    currentHeader = firstLetter;
-                    employlist.add(new Employee(currentHeader));
-                }
+//                String firstLetter = hoTen.substring(0, 1).toUpperCase();
+//
+//                // If the header doesn't exist or is different, create a new header
+//                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+//                    currentHeader = firstLetter;
+//                    employlist.add(new Employee(currentHeader));
+//                }
 
                 Employee employee = new Employee(employeeId, hoTen, chucvu, email, sdt, bitmap, false, tenDvi);
                 employlist.add(employee);
@@ -186,13 +190,43 @@ public class Employee_show extends Fragment {
 
         cursor.close();
         db.close();
+        Collections.sort(employlist, new Comparator<Employee>() {
+            @Override
+            public int compare(Employee e1, Employee e2) {
+                String name1 = normalizeString(e1.getHoTen());
+                String name2 = normalizeString(e2.getHoTen());
+                return name1.compareTo(name2);
+            }
+        });
+
+        ArrayList<Employee> sortedListWithHeaders = new ArrayList<>();
+
+        for (Employee employee : employlist) {
+            String firstLetter = normalizeString(employee.getHoTen()).substring(0, 1).toUpperCase();
+            if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                currentHeader = firstLetter;
+                sortedListWithHeaders.add(new Employee(currentHeader));
+            }
+            sortedListWithHeaders.add(employee);
+        }
+        employlist.clear();
+        employlist.addAll(sortedListWithHeaders);
 
         return true; // Employees loaded successfully
     }
-
+    private String normalizeString(String input) {
+        if (input == null) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        normalized = pattern.matcher(normalized).replaceAll("");
+        return normalized.replaceAll("\\s+", " ").trim();
+    }
     private void filterEmployees(String searchText) {
         ArrayList<Employee> filteredList = new ArrayList<>();
         String currentHeader = null;
+        String normalizedSearchText = normalizeString(searchText).toLowerCase();
 
         for (Employee employee : employlist) {
             if (employee.isHeader()) {
@@ -200,9 +234,11 @@ public class Employee_show extends Fragment {
                 if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getHoTen())) {
                     filteredList.add(employee);
                 }
-            } else if (employee.getHoTen().toLowerCase().contains(searchText.toLowerCase())) {
-                if (filteredList.size() == 0 || !currentHeader.equals(filteredList.get(filteredList.size() - 1).getHoTen())) {
-                    filteredList.add(new Employee(employee.getHoTen().substring(0, 1).toUpperCase()));
+            } else if (normalizeString(employee.getHoTen()).toLowerCase().contains(normalizedSearchText)) {
+                String firstLetter = normalizeString(employee.getHoTen()).substring(0, 1).toUpperCase();
+                if (currentHeader == null || !currentHeader.equals(firstLetter)) {
+                    currentHeader = firstLetter;
+                    filteredList.add(new Employee(currentHeader));
                 }
                 filteredList.add(employee);
             }
